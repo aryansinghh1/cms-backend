@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
 
-const tansporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service:"gmail",
     auth:{
         user:process.env.EMAIL_USER,
@@ -33,7 +33,7 @@ exports.sendOTP = async (req,res)=>{
 }
 
 exports.verifyOTP = async (req,res)=>{
-    const {email ,otp} = res.body;
+    const {email ,otp} = req.body;
 
     const record = await OTP.findOne({email}).sort({createdAt:-1});
     if(!record) return res.status(400).json({message: "NO OTP"});
@@ -44,7 +44,7 @@ exports.verifyOTP = async (req,res)=>{
     const match = await bcrypt.compare(otp, record.otp);
     if(!match) return res.status(400).json({message: "Invalid OTP"});
 
-    await User.updateOne({email}, {isVarified: true});
+    await User.updateOne({email}, {isVerified: true});
 
     res.json({message: "Email verified"});
 }
@@ -65,7 +65,7 @@ exports.login = async (req,res) => {
     const match = await  bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({message: "Wrong password"});
 
-    const token = jwt.sign({id: user._id},process.env.JWT.SCRET,{
+    const token = jwt.sign({id: user._id},process.env.JWT_SECRET,{
         expiresIn: "7d",
     });
 
