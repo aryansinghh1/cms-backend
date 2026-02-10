@@ -8,10 +8,9 @@ app.use(cors());
 app.use(express.json({limit: "10mb"}));
 app.use(morgan("dev"));
 
-
 app.get("/",(req,res)=> res.send("CMS API Running"));
 
-app.get("/api/auth",require("./routes/auth.routes"));
+app.use("/api/auth",require("./routes/auth.routes"));
 app.use("/api/artifact",require("./routes/artifact.routes"));
 
 module.exports = app;
