@@ -14,12 +14,14 @@ exports.getArtifacts = async (req, res) => {
 };
 
 exports.toggleLike = async (req, res) => {
-  const { id } = req.params; // artifact id
-  const userId = req.user.id;
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid Artifact ID" });
+  }
 
   const artifact = await Artifact.findById(id);
   if (!artifact) return res.status(404).json({ message: "Artifact not found" });
-
   const alreadyLiked = artifact.likes.includes(userId);
 
   if (alreadyLiked) {
@@ -53,18 +55,15 @@ exports.getLikes = async (req, res) => {
   });
 };
 
-
 exports.addComment = async (req, res) => {
   const { id } = req.params; // artifact id
   const { text } = req.body;
   const userId = req.user.id;
 
-  if (!text)
-    return res.status(400).json({ message: "Comment text required" });
+  if (!text) return res.status(400).json({ message: "Comment text required" });
 
   const artifact = await Artifact.findById(id);
-  if (!artifact)
-    return res.status(404).json({ message: "Artifact not found" });
+  if (!artifact) return res.status(404).json({ message: "Artifact not found" });
 
   artifact.comments.push({
     user: userId,
@@ -79,15 +78,15 @@ exports.addComment = async (req, res) => {
   });
 };
 
-
 exports.getComments = async (req, res) => {
   const { id } = req.params;
 
-  const artifact = await Artifact.findById(id)
-    .populate("comments.user", "email");
+  const artifact = await Artifact.findById(id).populate(
+    "comments.user",
+    "email",
+  );
 
-  if (!artifact)
-    return res.status(404).json({ message: "Artifact not found" });
+  if (!artifact) return res.status(404).json({ message: "Artifact not found" });
 
   res.json({
     totalComments: artifact.comments.length,
